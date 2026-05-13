@@ -496,23 +496,96 @@ let rows=[], deudas={}, historial=[], filtro="all", filtroS="all", perfiles={};
 let coords=[];
 let coordHist=[];
 
-function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+// ── GOOGLE SHEETS BACKEND ────────────────────────────────────────────────────
+const GS_URL = "https://script.google.com/macros/s/AKfycbyzFNsBAyp0WwZQnESLQv09o-MtsdyBr6odfEPj6Z_1kFE7wUTmisy8noGvFbYY2n7ZnA/exec";
+const GS_KEY_MAP = {
+  "pc4_rows":          "rows",
+  "pc4_semana":        "semana",
+  "pc4_deudas":        "deudas",
+  "pc4_hist":          "historial",
+  "pc4_perfiles":      "perfiles",
+  "pc4_coords":        "coords",
+  "pc4_coord_hist":    "coord_hist",
+  "pc4_liquidaciones": "liquidaciones",
+  "pc4_flujo":         "flujo",
+  "pc4_flujo_dias":    "flujo_dias",
+  "pc4_perf_hist":     "perf_hist"
+};
+// Cache local para evitar múltiples fetches
+const _cache = {};
+// Cola de escrituras pendientes (para no perder datos si hay lag)
+const _pending = {};
 
-function init(){
-  deudas    = ld("pc4_deudas",{});
-  historial = ld("pc4_hist",[]);
-  perfiles  = ld("pc4_perfiles", PERFILES_DEFAULT);
+async function sv(k, v) {
+  const sheet = GS_KEY_MAP[k];
+  if (!sheet) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} return; }
+  _cache[k] = v;
+  _pending[k] = v;
+  try {
+    await fetch(GS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ sheet, data: v })
+    });
+    delete _pending[k];
+  } catch(e) {
+    console.warn("GS write error (guardado local como respaldo):", k, e);
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch(_) {}
+  }
+}
+
+async function gsLoad(k, d) {
+  const sheet = GS_KEY_MAP[k];
+  if (!sheet) {
+    try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e) { return d; }
+  }
+  if (_cache[k] !== undefined) return _cache[k];
+  try {
+    const res = await fetch(GS_URL + "?sheet=" + sheet);
+    const json = await res.json();
+    const val = json.data ? (typeof json.data === "string" ? JSON.parse(json.data) : json.data) : d;
+    _cache[k] = val;
+    return val;
+  } catch(e) {
+    console.warn("GS read error, usando localStorage:", k, e);
+    try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(_) { return d; }
+  }
+}
+
+// ld síncrono — devuelve cache o default (usa gsLoad en init para precargar)
+function ld(k, d) {
+  if (_cache[k] !== undefined) return _cache[k];
+  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e) { return d; }
+}
+
+async function init(){
+  // Mostrar indicador de carga
+  document.getElementById("fmsg").style.display="block";
+  document.getElementById("fmsg").textContent="⏳ Cargando datos...";
+
+  // Precargar todos los datos desde Google Sheets en paralelo
+  await Promise.all([
+    gsLoad("pc4_deudas",{}).then(v=>{ deudas=v; _cache["pc4_deudas"]=v; }),
+    gsLoad("pc4_hist",[]).then(v=>{ historial=v; _cache["pc4_hist"]=v; }),
+    gsLoad("pc4_perfiles",PERFILES_DEFAULT).then(v=>{ perfiles=v; _cache["pc4_perfiles"]=v; }),
+    gsLoad("pc4_rows",null).then(v=>{ _cache["pc4_rows"]=v; }),
+    gsLoad("pc4_semana","19/2026").then(v=>{ _cache["pc4_semana"]=v; }),
+    gsLoad("pc4_coords",[{nombre:"Styben",sueldo:1800,comision:0},{nombre:"Javier",sueldo:1237.50,comision:675},{nombre:"Hugo",sueldo:3000,comision:675}]).then(v=>{ coords=v; _cache["pc4_coords"]=v; }),
+    gsLoad("pc4_coord_hist",[]).then(v=>{ coordHist=v; _cache["pc4_coord_hist"]=v; }),
+    gsLoad("pc4_liquidaciones",[]).then(v=>{ _cache["pc4_liquidaciones"]=v; }),
+    gsLoad("pc4_flujo",[]).then(v=>{ _cache["pc4_flujo"]=v; }),
+    gsLoad("pc4_flujo_dias",[]).then(v=>{ _cache["pc4_flujo_dias"]=v; }),
+    gsLoad("pc4_perf_hist",[]).then(v=>{ _cache["pc4_perf_hist"]=v; }),
+  ]);
+
   Object.entries(PERFILES_DEFAULT).forEach(([n,v])=>{if(!perfiles[n])perfiles[n]=v;});
 
-  const savedSem = localStorage.getItem("pc4_semana");
-  const savedRows = ld("pc4_rows", null);
+  const savedSem = _cache["pc4_semana"] || "19/2026";
+  const savedRows = _cache["pc4_rows"];
 
   if(savedSem === "19/2026" && savedRows && savedRows.length > 0 && savedRows[0].comision > 0){
-    // Datos S19 ya editados manualmente — usar los guardados
     rows = savedRows.map(r=>applyPerfil(r));
   } else {
-    // Primera vez o semana distinta — cargar datos S19 reales
     rows = S19.map(r=>({...r}));
     sv("pc4_rows", rows);
     sv("pc4_semana","19/2026");
@@ -520,8 +593,8 @@ function init(){
   }
 
   sv("pc4_perfiles", perfiles);
-  coords    = ld("pc4_coords", [{nombre:"Styben",sueldo:1800,comision:0},{nombre:"Javier",sueldo:1237.50,comision:675},{nombre:"Hugo",sueldo:3000,comision:675}]);
-  coordHist = ld("pc4_coord_hist",[]);
+
+  document.getElementById("fmsg").style.display="none";
   renderT(); renderD(); renderSucursales();
 }
 
@@ -957,11 +1030,10 @@ function tarjetaDeuda(nombre,d,saldada){
   return div;
 }
 
-function recargarS19(){
+async function recargarS19(){
   if(!confirm("¿Recargar los datos del reporte S19/2026?\nEsto reemplaza los datos actuales en pantalla con los del reporte de Benji.\n(Las deudas y el historial no se borran)"))return;
   rows = S19.map(r=>({...r}));
-  sv("pc4_rows", rows);
-  sv("pc4_semana","19/2026");
+  await Promise.all([sv("pc4_rows", rows), sv("pc4_semana","19/2026")]);
   document.getElementById("sem").value="19/2026";
   renderT(); renderD(); renderSucursales();
   flash("✅ Datos S19/2026 cargados — 21 lavadores");
@@ -970,15 +1042,15 @@ function recargarS19(){
 function exportarDatos(){
   const data = {
     version: "PC5",
-    semana: localStorage.getItem("pc4_semana") || "19/2026",
-    rows: JSON.parse(localStorage.getItem("pc4_rows")||"[]"),
-    deudas: JSON.parse(localStorage.getItem("pc4_deudas")||"{}"),
-    historial: JSON.parse(localStorage.getItem("pc4_hist")||"[]"),
-    perfiles: JSON.parse(localStorage.getItem("pc4_perfiles")||"{}"),
-    coords: JSON.parse(localStorage.getItem("pc4_coords")||"[]"),
-    coordHist: JSON.parse(localStorage.getItem("pc4_coord_hist")||"[]"),
-    liquidaciones: JSON.parse(localStorage.getItem("pc4_liquidaciones")||"[]"),
-    flujo: JSON.parse(localStorage.getItem("pc4_flujo")||"{}"),
+    semana: _cache["pc4_semana"] || "19/2026",
+    rows: _cache["pc4_rows"] || [],
+    deudas: _cache["pc4_deudas"] || {},
+    historial: _cache["pc4_hist"] || [],
+    perfiles: _cache["pc4_perfiles"] || {},
+    coords: _cache["pc4_coords"] || [],
+    coordHist: _cache["pc4_coord_hist"] || [],
+    liquidaciones: _cache["pc4_liquidaciones"] || [],
+    flujo: _cache["pc4_flujo"] || {},
   };
   const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const a = document.createElement("a");
@@ -992,22 +1064,26 @@ function importarDatos(input){
   const file = input.files[0];
   if(!file)return;
   const reader = new FileReader();
-  reader.onload = function(e){
+  reader.onload = async function(e){
     try{
       const data = JSON.parse(e.target.result);
       if(!data.version || data.version !== "PC5"){
         alert("Archivo no reconocido"); return;
       }
       if(!confirm(`¿Importar datos de ${data.semana}?\n\nEsto reemplazará TODO lo actual.`))return;
-      if(data.semana) localStorage.setItem("pc4_semana", data.semana);
-      if(data.rows)   localStorage.setItem("pc4_rows", JSON.stringify(data.rows));
-      if(data.deudas) localStorage.setItem("pc4_deudas", JSON.stringify(data.deudas));
-      if(data.historial) localStorage.setItem("pc4_hist", JSON.stringify(data.historial));
-      if(data.perfiles)  localStorage.setItem("pc4_perfiles", JSON.stringify(data.perfiles));
-      if(data.coords)    localStorage.setItem("pc4_coords", JSON.stringify(data.coords));
-      if(data.coordHist) localStorage.setItem("pc4_coord_hist", JSON.stringify(data.coordHist));
-      if(data.liquidaciones) localStorage.setItem("pc4_liquidaciones", JSON.stringify(data.liquidaciones));
-      if(data.flujo) localStorage.setItem("pc4_flujo", JSON.stringify(data.flujo));
+      flash("⏳ Importando datos a la nube...");
+      const saves = [];
+      if(data.semana)       saves.push(sv("pc4_semana", data.semana));
+      if(data.rows)         saves.push(sv("pc4_rows", data.rows));
+      if(data.deudas)       saves.push(sv("pc4_deudas", data.deudas));
+      if(data.historial)    saves.push(sv("pc4_hist", data.historial));
+      if(data.perfiles)     saves.push(sv("pc4_perfiles", data.perfiles));
+      if(data.coords)       saves.push(sv("pc4_coords", data.coords));
+      if(data.coordHist)    saves.push(sv("pc4_coord_hist", data.coordHist));
+      if(data.liquidaciones)saves.push(sv("pc4_liquidaciones", data.liquidaciones));
+      if(data.flujo)        saves.push(sv("pc4_flujo", data.flujo));
+      await Promise.all(saves);
+      flash("✅ Datos importados correctamente");
       location.reload();
     } catch(err){ alert("Error al leer el archivo: "+err.message); }
   };
@@ -1015,11 +1091,14 @@ function importarDatos(input){
   input.value="";
 }
 
-function resetearSemana(){
+async function resetearSemana(){
   if(!confirm("¿Cargar datos frescos de S19/2026?\n\nLas deudas e historial se conservan."))return;
-  localStorage.removeItem("pc4_rows");
-  localStorage.removeItem("pc4_semana");
-  localStorage.removeItem("pc4_perfiles");
+  flash("⏳ Limpiando semana...");
+  await Promise.all([
+    sv("pc4_rows", S19.map(r=>({...r}))),
+    sv("pc4_semana", "19/2026"),
+    sv("pc4_perfiles", PERFILES_DEFAULT)
+  ]);
   location.reload();
 }
 function ajustarPagosHechos(nombre,hechos){
@@ -2413,11 +2492,12 @@ function renderHistPagos(){
   }
 }
 
-init();
-initFlujo();
-initPerf();
-initLiquidaciones();
-// Rellenar campo de API key si está guardada
+init().then(()=>{
+  initFlujo();
+  initPerf();
+  initLiquidaciones();
+});
+// Rellenar campo de API key si está guardada (esto sí puede quedar en localStorage)
 const _k=localStorage.getItem("pc4_gkey");
 if(_k)document.getElementById("gkey-input").value=_k;
 </script>
