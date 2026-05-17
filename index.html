@@ -1984,8 +1984,8 @@ function calcFlujoTotales(){
 
 function guardarFlujo(){
   const sem=document.getElementById("sem").value;
-  const totRef=flujoDias.reduce((s,d)=>s+(d.ref.monto||0)-(d.ref.gasto||0),0);
-  const totAla=flujoDias.reduce((s,d)=>s+(d.ala.monto||0)-(d.ala.gasto||0),0);
+  const totRef=flujoDias.reduce((s,d)=>s+montoRef(d)-(d.ref.gasto||0),0);
+  const totAla=flujoDias.reduce((s,d)=>s+montoAla(d)-(d.ala.gasto||0),0);
   const entry={semana:sem,fecha:new Date().toLocaleDateString("es-MX"),dias:[...flujoDias],totRef,totAla,total:totRef+totAla};
   flujoHist=[entry,...flujoHist].slice(0,30);
   sv("pc4_flujo",flujoHist);
@@ -2029,7 +2029,7 @@ function renderFlujoHist(){
                 <div style="font-size:10px;font-weight:700;color:#1c3a61;margin-bottom:4px">PC REFUGIO</div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Monto</label>
-                  <input type="number" value="${d.ref?.monto||0}" onchange="editFlujoHistDia(${idx},${di},'ref.monto',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
+                  <input type="number" value="${sumaCortes(d.ref?.cortes)||0}" onchange="editFlujoHistDia(${idx},${di},'ref.cortes.0.val',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Gasto</label>
@@ -2044,7 +2044,7 @@ function renderFlujoHist(){
                 <div style="font-size:10px;font-weight:700;color:#38a169;margin-bottom:4px">PC ÁLAMOS</div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Monto</label>
-                  <input type="number" value="${d.ala?.monto||0}" onchange="editFlujoHistDia(${idx},${di},'ala.monto',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
+                  <input type="number" value="${sumaCortes(d.ala?.cortes)||0}" onchange="editFlujoHistDia(${idx},${di},'ala.cortes.0.val',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Gasto</label>
@@ -2079,20 +2079,26 @@ function eliminarFlujoHist(idx){
 function editFlujoHistDia(hIdx,dIdx,campo,val){
   const d=flujoHist[hIdx].dias[dIdx];
   const parts=campo.split(".");
-  if(parts.length===2){if(!d[parts[0]])d[parts[0]]={};d[parts[0]][parts[1]]=val;}
-  else{d[campo]=val;}
+  if(parts.length===4 && parts[2]==="0" && parts[3]==="val"){
+    // ref.cortes.0.val or ala.cortes.0.val
+    const suc=parts[0];
+    if(!d[suc].cortes||!d[suc].cortes.length)d[suc].cortes=[{val:"",nota:""}];
+    d[suc].cortes[0].val=val;
+  } else if(parts.length===2){
+    if(!d[parts[0]])d[parts[0]]={};d[parts[0]][parts[1]]=val;
+  } else {d[campo]=val;}
   // recalc totals
   const h=flujoHist[hIdx];
-  h.totRef=h.dias.reduce((s,x)=>s+(x.ref?.monto||0)-(x.ref?.gasto||0),0);
-  h.totAla=h.dias.reduce((s,x)=>s+(x.ala?.monto||0)-(x.ala?.gasto||0),0);
+  h.totRef=h.dias.reduce((s,x)=>s+sumaCortes(x.ref?.cortes)-(x.ref?.gasto||0),0);
+  h.totAla=h.dias.reduce((s,x)=>s+sumaCortes(x.ala?.cortes)-(x.ala?.gasto||0),0);
   h.total=h.totRef+h.totAla;
 }
 
 function eliminarFlujoHistDia(hIdx,dIdx){
   flujoHist[hIdx].dias.splice(dIdx,1);
   const h=flujoHist[hIdx];
-  h.totRef=h.dias.reduce((s,x)=>s+(x.ref?.monto||0)-(x.ref?.gasto||0),0);
-  h.totAla=h.dias.reduce((s,x)=>s+(x.ala?.monto||0)-(x.ala?.gasto||0),0);
+  h.totRef=h.dias.reduce((s,x)=>s+sumaCortes(x.ref?.cortes)-(x.ref?.gasto||0),0);
+  h.totAla=h.dias.reduce((s,x)=>s+sumaCortes(x.ala?.cortes)-(x.ala?.gasto||0),0);
   h.total=h.totRef+h.totAla;
   sv("pc4_flujo",flujoHist);
   renderFlujoHist();
