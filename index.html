@@ -148,10 +148,7 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
     <label style="color:#aaa;font-size:11px">Semana</label>
     <input type="text" id="sem" value="19/2026">
-    <input type="password" id="gkey-input" placeholder="API Key Gemini"
-      style="background:#222;color:#f8ba00;border:1px solid #444;border-radius:4px;padding:3px 8px;font-size:11px;width:140px;font-family:monospace"
-      onchange="localStorage.setItem('pc4_gkey',this.value);flash('✓ API Key guardada')">
-    <button onclick="localStorage.removeItem('pc4_gkey');document.getElementById('gkey-input').value='';flash('🗑 Key borrada — pega la nueva')" style="background:#e53e3e;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✕ Reset key</button>
+    <span style="color:#555;font-size:10px;font-weight:700">🤖 Claude AI</span>
   </div>
 </div>
 <div class="tabs">
@@ -174,7 +171,8 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
       <h2 id="ptit">Semana 19/2026 — datos cargados ✓</h2>
       <div class="bg">
         <button class="btn by" onclick="document.getElementById('fi').click()">📸 Subir reporte</button>
-        <button class="btn" onclick="resetearSemana()" style="background:#1c3a61;color:#fff;font-size:11px">🔄 Recargar S19</button>
+        <button class="btn bo" onclick="if(window._lastPDFText){const w=window.open();w.document.write('<pre style=font-size:11px>'+window._lastPDFText.replace(/</g,'&lt;')+'</pre>');}else{alert('Sube un PDF primero');}" style="font-size:11px">🔍 Ver texto PDF</button>
+        <button class="btn" onclick="resetearSemana()" style="background:#1c3a61;color:#fff;font-size:11px">🔄 Nueva semana</button>
         <button class="btn" onclick="exportarDatos()" style="background:#276749;color:#fff;font-size:11px">📤 Exportar</button>
         <button class="btn" onclick="document.getElementById('fi-import').click()" style="background:#276749;color:#fff;font-size:11px">📥 Importar</button>
         <button class="btn bo" onclick="addRow()">+ Lavador</button>
@@ -460,6 +458,29 @@ const S19 = [
   {nombre:"Uli",        sucursal:"PC Refugio",pct:35, autos:62, comision:3675, food:734, merch:25, bono:0,   ahorro:0},
 ];
 
+const S20 = [
+  // PC ÁLAMOS
+  {nombre:"Danilo",     sucursal:"PC Álamos", pct:40, autos:23, comision:1448, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Jose Jr",    sucursal:"PC Álamos", pct:45, autos:51, comision:3332, food:200, merch:100,bono:0,   ahorro:0},
+  {nombre:"Juan Lopez", sucursal:"PC Álamos", pct:40, autos:63, comision:3441, food:48,  merch:0,  bono:0,   ahorro:0},
+  {nombre:"Juaquin",    sucursal:"PC Álamos", pct:30, autos:27, comision:1383, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Marvin",     sucursal:"PC Álamos", pct:45, autos:63, comision:4617, food:0,   merch:0,  bono:50,  ahorro:0},
+  {nombre:"Randy",      sucursal:"PC Álamos", pct:35, autos:58, comision:3224, food:0,   merch:22, bono:0,   ahorro:0},
+  {nombre:"Toño",       sucursal:"PC Álamos", pct:45, autos:68, comision:5234, food:48,  merch:0,  bono:0,   ahorro:0},
+  {nombre:"Valente",    sucursal:"PC Álamos", pct:40, autos:55, comision:3628, food:200, merch:200,bono:200, ahorro:0},
+  // PC REFUGIO
+  {nombre:"Antonio",    sucursal:"PC Refugio",pct:40, autos:53, comision:3466, food:200, merch:0,  bono:0,   ahorro:0},
+  {nombre:"Cesar",      sucursal:"PC Refugio",pct:35, autos:56, comision:3039, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Charlie",    sucursal:"PC Refugio",pct:40, autos:59, comision:3697, food:24,  merch:300,bono:0,   ahorro:0},
+  {nombre:"Cheque",     sucursal:"PC Refugio",pct:30, autos:30, comision:1589, food:24,  merch:0,  bono:0,   ahorro:0},
+  {nombre:"Danilo",     sucursal:"PC Refugio",pct:40, autos:24, comision:1818, food:48,  merch:336,bono:0,   ahorro:0},
+  {nombre:"El güero",   sucursal:"PC Refugio",pct:40, autos:59, comision:3752, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Emma",       sucursal:"PC Refugio",pct:40, autos:61, comision:4208, food:24,  merch:100,bono:0,   ahorro:0},
+  {nombre:"Gaell",      sucursal:"PC Refugio",pct:40, autos:55, comision:3031, food:0,   merch:152,bono:0,   ahorro:0},
+  {nombre:"Javier",     sucursal:"PC Refugio",pct:35, autos:24, comision:2286, food:0,   merch:596,bono:0,   ahorro:0},
+  {nombre:"Uli",        sucursal:"PC Refugio",pct:30, autos:46, comision:2352, food:48,  merch:594,bono:0,   ahorro:0},
+];
+
 // Perfiles permanentes (sucursal+% que se recuerdan entre semanas)
 const PERFILES_DEFAULT = {
   "Antonio":{"sucursal":"PC Refugio","pct":40},
@@ -570,7 +591,7 @@ async function init(){
     gsLoad("pc4_hist",[]).then(v=>{ historial=v; _cache["pc4_hist"]=v; }),
     gsLoad("pc4_perfiles",PERFILES_DEFAULT).then(v=>{ perfiles=v; _cache["pc4_perfiles"]=v; }),
     gsLoad("pc4_rows",null).then(v=>{ _cache["pc4_rows"]=v; }),
-    gsLoad("pc4_semana","19/2026").then(v=>{ _cache["pc4_semana"]=v; }),
+    gsLoad("pc4_semana","20/2026").then(v=>{ _cache["pc4_semana"]=v; }),
     gsLoad("pc4_coords",[{nombre:"Styben",sueldo:1800,comision:0},{nombre:"Javier",sueldo:1237.50,comision:675},{nombre:"Hugo",sueldo:3000,comision:675}]).then(v=>{ coords=v; _cache["pc4_coords"]=v; }),
     gsLoad("pc4_coord_hist",[]).then(v=>{ coordHist=v; _cache["pc4_coord_hist"]=v; }),
     gsLoad("pc4_liquidaciones",[]).then(v=>{ _cache["pc4_liquidaciones"]=v; }),
@@ -581,7 +602,7 @@ async function init(){
 
   Object.entries(PERFILES_DEFAULT).forEach(([n,v])=>{if(!perfiles[n])perfiles[n]=v;});
 
-  const savedSem = _cache["pc4_semana"] || "19/2026";
+  const savedSem = _cache["pc4_semana"] || "20/2026";
   const savedRows = _cache["pc4_rows"];
 
   if(savedSem === "19/2026" && savedRows && savedRows.length > 0 && savedRows[0].comision > 0){
@@ -589,7 +610,7 @@ async function init(){
   } else {
     rows = S19.map(r=>({...r}));
     sv("pc4_rows", rows);
-    sv("pc4_semana","19/2026");
+    sv("pc4_semana","20/2026");
     document.getElementById("sem").value="19/2026";
   }
 
@@ -640,95 +661,295 @@ function setF(f){filtro=f;document.querySelectorAll(".fbtn[data-f]").forEach(b=>
 function setFS(f){filtroS=f;["all","ref","ala"].forEach(k=>document.getElementById("fs-"+k).classList.remove("on"));({all:"fs-all","PC Refugio":"fs-ref","PC Álamos":"fs-ala"})[f]&&document.getElementById(({all:"fs-all","PC Refugio":"fs-ref","PC Álamos":"fs-ala"})[f]).classList.add("on");renderS()}
 
 // ── OCR ───────────────────────────────────────────────────────────────────────
+
+
 function onFile(inp){
   const file=inp.files&&inp.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    const b64=e.target.result.split(",")[1];
-    const mime=file.type||"image/png";
-    runOCR(b64,mime);
-  };
-  r.readAsDataURL(file);inp.value="";
+  if(file.type==="application/pdf"){
+    const r=new FileReader();
+    r.onload=e=>{parsePDF(e.target.result)};
+    r.readAsArrayBuffer(file);
+  } else {
+    setSt("err","❌ Solo se aceptan archivos PDF. Pide a Benji que exporte como PDF desde su Excel.");
+  }
+  inp.value="";
 }
 
-async function runOCR(b64,mime){
-  setSt("load","🔍 Leyendo reporte con IA...");
-  const prompt=`Analiza este reporte semanal de lavadores de Patio Cinco.
-
-El reporte tiene una columna NOTAS o secciones marcadas como "ALAMOS" y "REFUGIO" que indican a qué sucursal pertenece cada lavador.
-
-Hay 4 tablas separadas:
-1. COMISIONES: columnas NOTAS (sucursal), COLABORADOR, %, $ COMISIÓN, # coches (autos), BONO
-2. FOOD (primera tabla): COLABORADOR, $ FOOD — solo los que consumieron food. Ignora la columna BONO negativa roja de esta tabla (son descuentos ya calculados).
-3. MERCH: COLABORADOR, $ MERCH — solo los que tienen merch
-4. Segunda tabla de FOOD (personal/coordinadores) — IGNORA ESTA, no son lavadores
-
-REGLAS IMPORTANTES:
-- Lee TODOS los lavadores de COMISIONES
-- La columna NOTAS o los encabezados de sección (ALAMOS, REFUGIO) determinan la sucursal:
-  * "ALAMOS" o "ÁLAMOS" → sucursal: "PC Álamos"
-  * "REFUGIO" → sucursal: "PC Refugio"
-- Para food: busca cada nombre en la tabla FOOD de lavadores. Si aparece, usa ese monto (positivo). Si no aparece, food=0
-- Para merch: busca cada nombre en la tabla MERCH. Si aparece, usa ese monto. Si no, merch=0
-- Para bono: usa la columna BONO de COMISIONES si existe (valor positivo verde). Si no hay, bono=0
-- Si un lavador aparece en COMISIONES con múltiples filas (por diferentes %), suma sus comisiones y usa el % más alto
-- NO incluyas filas "Total" ni "Suma total"
-- Los montos son números sin $ ni comas
-
-Devuelve SOLO este JSON, sin markdown ni texto extra:
-{"lavadores":[{"nombre":"","sucursal":"PC Refugio o PC Álamos","pct":40,"autos":0,"comision":0,"food":0,"merch":0,"bono":0}]}`;
-
+// ── PARSER PDF (sin IA, sin API) ──────────────────────────────────────────────
+async function parsePDF(arrayBuffer){
+  setSt("load","📄 Leyendo PDF...");
   try{
-  const GKEY=localStorage.getItem("pc4_gkey")||"GEMINI_KEY_PLACEHOLDER";
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GKEY}`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({contents:[{parts:[
-        {inline_data:{mime_type:mime,data:b64}},
-        {text:prompt}
-      ]}],generationConfig:{temperature:0,maxOutputTokens:2000}})
-    });
-    const raw=await res.text();
-    if(!res.ok){setSt("err","❌ Error API: "+raw.slice(0,200));return}
-    const data=JSON.parse(raw);
-    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
-    const parsed=JSON.parse(text.replace(/```json\n?|\n?```/g,"").trim());
-    if(!parsed.lavadores){setSt("err","❌ No se pudo leer la estructura");return}
+    const pdfjsLib = await loadPdfJs();
+    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+    // Recolectar TODOS los items de todas las páginas con sus coordenadas
+    let allItems = [];
+    for(let i=1; i<=pdf.numPages; i++){
+      const page = await pdf.getPage(i);
+      const vp = page.getViewport({scale:1});
+      const content = await page.getTextContent();
+      for(const item of content.items){
+        allItems.push({
+          str: item.str,
+          x: Math.round(item.transform[4]),
+          y: Math.round(vp.height - item.transform[5]), // invertir Y (PDF 0 está abajo)
+          page: i
+        });
+      }
+    }
+    // Ordenar por página, luego Y, luego X
+    allItems.sort((a,b)=> a.page-b.page || a.y-b.y || a.x-b.x);
 
-    rows=parsed.lavadores.map(l=>{
-      const nNorm=normN(l.nombre);
-      // buscar perfil guardado por nombre normalizado
-      const pk=Object.keys(perfiles).find(k=>normN(k)===nNorm);
-      const perf=pk?perfiles[pk]:null;
-      return{
-        nombre:  l.nombre||"",
-        sucursal:l.sucursal||perf?.sucursal||"",  // prioriza lo que leyó la IA
-        pct:     l.pct||perf?.pct||40,
-        autos:   l.autos||"",
-        comision:l.comision||"",
-        food:    l.food||"",
-        merch:   l.merch||"",
-        bono:    l.bono||""
+    // El PDF tiene 4 secciones horizontales: Comisiones (x<~300), Food (~300-450), Merch (~450-600), Ingresos (>600)
+    // Separar por columna basándose en X
+    // Agrupar en filas por Y (tolerancia 4px)
+    const rowMap = {};
+    for(const item of allItems){
+      if(!item.str.trim()) continue;
+      const yKey = Math.round(item.y/4)*4; // agrupar cada 4px
+      const pageKey = item.page;
+      const key = `${pageKey}_${yKey}`;
+      if(!rowMap[key]) rowMap[key] = [];
+      rowMap[key].push(item);
+    }
+
+    // Construir texto separado por columnas
+    // Columna COMISIONES: x < 420 (aprox mitad izquierda)
+    // El resto va a tablas Food/Merch
+    const comisionLines = [];
+    const otherLines = [];
+    const sortedKeys = Object.keys(rowMap).sort((a,b)=>{
+      const [pa,ya] = a.split("_").map(Number);
+      const [pb,yb] = b.split("_").map(Number);
+      return pa-pb || ya-yb;
+    });
+    for(const key of sortedKeys){
+      const items = rowMap[key].sort((a,b)=>a.x-b.x);
+      // Separar items de columna izquierda (comisiones) vs derecha (food/merch)
+      const leftItems = items.filter(it=>it.x < 420);
+      const rightItems = items.filter(it=>it.x >= 420);
+      if(leftItems.length) comisionLines.push(leftItems.map(it=>it.str).join(" "));
+      if(rightItems.length) otherLines.push(rightItems.map(it=>it.str).join(" "));
+    }
+
+    const fullText = [...comisionLines, "---OTRAS---", ...otherLines].join("\n");
+    // Debug: guardar texto para inspección
+    window._lastPDFText = fullText;
+    parseReporteText(fullText);
+  }catch(e){
+    setSt("err","❌ Error leyendo PDF: "+e.message);
+    console.error(e);
+  }
+}
+
+function loadPdfJs(){
+  return new Promise((resolve,reject)=>{
+    if(window.pdfjsLib){resolve(window.pdfjsLib);return;}
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload=()=>{
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      resolve(window.pdfjsLib);
+    };
+    s.onerror=()=>reject(new Error("No se pudo cargar PDF.js"));
+    document.head.appendChild(s);
+  });
+}
+
+function parseReporteText(text){
+  // El texto de PDF.js sale con tokens separados por espacios, una línea por "y"
+  // Estrategia: buscar patrones clave directamente en el texto completo
+  const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
+  // También trabajar con el texto completo para buscar patrones
+  const fullText = lines.join(" ");
+
+  // ── HELPER: encontrar todos los números después de un nombre ─────────────────
+  // En el PDF de Benji, las líneas "Total Nombre" siempre tienen la info que necesitamos
+  // Formato: "Total [Nombre] $X,XXX.XX [autos] [$bono]" o disperso en varias líneas
+
+  // ── 1. Extraer sección COMISIONES ────────────────────────────────────────────
+  // Buscar todas las líneas "Total [Nombre]" que tienen comisión y autos
+  const lavadores = {};
+  let sucursal = "";
+  let currentKey = null;
+
+  for(let i=0; i<lines.length; i++){
+    const line = lines[i];
+
+    // Detectar sucursal — puede venir solo o mezclado
+    if(/\bALAMOS\b|\bÁLAMOS\b/i.test(line) && !/comision|food|merch|ingresos/i.test(line)){
+      sucursal = "PC Álamos";
+    }
+    if(/\bREFUGIO\b/i.test(line) && !/comision|food|merch|ingresos/i.test(line)){
+      sucursal = "PC Refugio";
+    }
+
+    // Detectar línea "Total Nombre" — formato principal del reporte de Benji
+    // Ejemplos: "Total Danilo $1,448.00 23 $1,448"
+    //           "Total Juan Lopez $3,441.00 63 $3,441"
+    //           "Total Randy $3,223.50 58 Randy 21.6 -$22 $3,224"
+    const totalM = line.match(/^Total\s+([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*)\s+\$?([\d,]+\.?\d*)\s+(\d+)/i);
+    if(totalM){
+      const nombre = totalM[1].trim();
+      // Ignorar "Total Danilo" si es el mismo como subtotal — verificar que tenga autos razonables
+      const comision = parseFloat(totalM[2].replace(/,/g,""));
+      const autos = parseInt(totalM[3]);
+      if(comision < 100 || autos < 1) continue; // ignorar subtotales falsos
+
+      // Bono: buscar en la misma línea un número verde (el último $X antes del fin)
+      // En el PDF texto sale como "... $50 Marvin $4,617" — el bono está en col BONO
+      // Buscamos en las próximas líneas o en líneas anteriores el bono para este lavador
+      let bono = 0;
+      // Buscar el bono en la línea de detalle previa (línea con "%")
+      for(let j=Math.max(0,i-5); j<i; j++){
+        const prev = lines[j];
+        if(normN(prev).includes(normN(nombre)) || (currentKey && normN(prev).includes(currentKey))){
+          const bonoM = prev.match(/\$?(\d+)\s*$/);
+          if(bonoM){
+            const b = parseFloat(bonoM[1]);
+            if(b>0 && b<comision) bono = b;
+          }
+        }
+      }
+
+      const key = normN(nombre);
+      currentKey = key;
+      if(!lavadores[key]){
+        lavadores[key] = {nombre, sucursal, pct:40, autos, comision, bono};
+      } else {
+        lavadores[key].autos = autos;
+        lavadores[key].comision = comision;
+        if(bono) lavadores[key].bono = bono;
+        if(sucursal) lavadores[key].sucursal = sucursal;
+      }
+      continue;
+    }
+
+    // Detectar línea de porcentaje para capturar pct y bono
+    // "Nombre 40% $1,234.00 23" o "40% $1,234.00 23"
+    const pctM = line.match(/^([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*?)\s+(\d+)%\s+\$?[\d,]+/);
+    if(pctM){
+      const nombre = pctM[1].trim();
+      const pct = parseInt(pctM[2]);
+      if(nombre && nombre.length>1){
+        const key = normN(nombre);
+        currentKey = key;
+        if(!lavadores[key]) lavadores[key]={nombre,sucursal,pct,autos:0,comision:0,bono:0};
+        else if(pct > lavadores[key].pct) lavadores[key].pct = pct;
+        if(sucursal && !lavadores[key].sucursal) lavadores[key].sucursal = sucursal;
+      } else if(currentKey && lavadores[currentKey]){
+        // línea de continuación sin nombre (segundo %)
+        if(pct > lavadores[currentKey].pct) lavadores[currentKey].pct = pct;
+      }
+      // Detectar bono inline: "Nombre 45% $X 63 $50" — último token después de autos
+      const bonoInlineM = line.match(/\d+%[^$]+\$(\d+[,.]?\d*)\s+\$?(\d+)\s*$/);
+      if(bonoInlineM && currentKey && lavadores[currentKey]){
+        const posibleBono = parseFloat(bonoInlineM[2]?.replace(/,/g,""));
+        if(posibleBono > 0 && posibleBono < 1000) lavadores[currentKey].bono = posibleBono;
+      }
+      continue;
+    }
+
+    // Línea solo de porcentaje (continuación): "40% $564.00 9"
+    const pctOnlyM = line.match(/^(\d+)%\s+\$?[\d,]+/);
+    if(pctOnlyM && currentKey && lavadores[currentKey]){
+      const pct = parseInt(pctOnlyM[1]);
+      if(pct > lavadores[currentKey].pct) lavadores[currentKey].pct = pct;
+    }
+  }
+
+  // ── 2. Extraer FOOD (primera tabla, lavadores) ────────────────────────────────
+  // Buscar sección FOOD: empieza con "FOOD (SEMANA XX/XXXX)" y termina con "Suma total"
+  // Ignorar la segunda tabla FOOD que es de coordinadores
+  const foodMap = {};
+  const coordNames = new Set(["benji","montse","dani","styben","yaz"]);
+  let foodIdx = -1;
+  let foodCount = 0;
+  for(let i=0; i<lines.length; i++){
+    if(/FOOD.*SEMANA.*\d{4}/i.test(lines[i])){
+      foodCount++;
+      if(foodCount === 1){ foodIdx = i; break; } // solo primera
+    }
+  }
+  if(foodIdx >= 0){
+    for(let i=foodIdx+1; i<lines.length; i++){
+      const line = lines[i];
+      if(/suma total|FOOD.*SEMANA|MERCH.*SEMANA|INGRESOS/i.test(line)) break;
+      // "Antonio $200.00" o "Jose Jr $200.00" o "Juan Lopez $48.00"
+      const m = line.match(/^([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*)\s+\$?([\d,]+\.?\d*)$/);
+      if(m){
+        const nombre = m[1].trim();
+        const monto = parseFloat(m[2].replace(/,/g,""));
+        if(/colaborador|bono|total|food/i.test(nombre)) continue;
+        if(coordNames.has(nombre.toLowerCase())) continue;
+        if(monto > 0) foodMap[normN(nombre)] = monto;
+      }
+    }
+  }
+
+  // ── 3. Extraer MERCH ─────────────────────────────────────────────────────────
+  // Formato: "Charlie 300 -300 $3,697" — el primer número es el monto de merch
+  const merchMap = {};
+  let merchIdx = -1;
+  for(let i=0; i<lines.length; i++){
+    if(/MERCH.*SEMANA.*\d{4}/i.test(lines[i])){ merchIdx = i; break; }
+  }
+  if(merchIdx >= 0){
+    for(let i=merchIdx+1; i<lines.length; i++){
+      const line = lines[i];
+      if(/suma total|INGRESOS|FOOD.*SEMANA.*19|FOOD.*SEMANA.*18/i.test(line)) break;
+      // "Charlie 300 -300 $3,697"
+      const m = line.match(/^([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*)\s+([\d.]+)\s+-/);
+      if(m){
+        const nombre = m[1].trim();
+        const monto = parseFloat(m[2]);
+        if(/colaborador|merch|total/i.test(nombre)) continue;
+        if(monto > 0) merchMap[normN(nombre)] = monto;
+      }
+    }
+  }
+
+  // ── 4. Cruzar y construir resultado ──────────────────────────────────────────
+  const result = Object.values(lavadores)
+    .filter(l => l.comision > 0)
+    .map(l => {
+      const key = normN(l.nombre);
+      const perfKey = Object.keys(perfiles).find(k => normN(k) === key);
+      return {
+        nombre:   l.nombre,
+        sucursal: l.sucursal || perfiles[perfKey]?.sucursal || "",
+        pct:      l.pct || perfiles[perfKey]?.pct || 40,
+        autos:    l.autos || "",
+        comision: l.comision || "",
+        food:     foodMap[key] || "",
+        merch:    merchMap[key] || "",
+        bono:     l.bono || ""
       };
     });
 
-    // actualizar perfiles con sucursal recién leída
-    rows.forEach(r=>{
-      if(r.nombre&&r.sucursal){
-        if(!perfiles[r.nombre])perfiles[r.nombre]={sucursal:r.sucursal,pct:r.pct};
-        else{perfiles[r.nombre].sucursal=r.sucursal;perfiles[r.nombre].pct=r.pct;}
-      }
-    });
-    sv("pc4_perfiles",perfiles);
-    sv("pc4_rows",rows);
-    renderT();renderD();renderSucursales();
+  if(!result.length){
+    setSt("err","❌ No se encontraron lavadores. Verifica que sea el PDF correcto de Benji.");
+    return;
+  }
 
-    const sinSuc=rows.filter(r=>!r.sucursal).length;
-    setSt("ok",sinSuc>0
-      ?`✓ ${rows.length} lavadores cargados — ${sinSuc} sin sucursal detectada (revisa 🏢 Sucursales)`
-      :`✓ ${rows.length} lavadores cargados con sucursal asignada automáticamente`);
-  }catch(e){setSt("err","❌ "+e.message)}
+  // Actualizar perfiles
+  result.forEach(r=>{
+    if(r.nombre && r.sucursal){
+      if(!perfiles[r.nombre]) perfiles[r.nombre] = {sucursal:r.sucursal, pct:r.pct};
+      else { perfiles[r.nombre].sucursal = r.sucursal; perfiles[r.nombre].pct = r.pct; }
+    }
+  });
+
+  rows = result;
+  sv("pc4_perfiles", perfiles);
+  sv("pc4_rows", rows);
+  renderT(); renderD(); renderSucursales();
+
+  const sinSuc = rows.filter(r=>!r.sucursal).length;
+  setSt("ok", sinSuc > 0
+    ? `✓ ${rows.length} lavadores cargados — ${sinSuc} sin sucursal asignada (clic en "—" para asignar)`
+    : `✓ ${rows.length} lavadores cargados correctamente`);
 }
+
 
 // ── TABLA ─────────────────────────────────────────────────────────────────────
 function renderT(){
@@ -742,9 +963,11 @@ function renderT(){
     const show=rowVisible(row);if(show)vis++;
     const tr=document.createElement("tr");if(!show)tr.classList.add("hidden");
 
-    const sucLabel=row.sucursal==="PC Refugio"?`<span class="pill-ref">Refugio</span>`
-      :row.sucursal==="PC Álamos"?`<span class="pill-ala">Álamos</span>`
-      :`<span class="pill-sin">—</span>`;
+    const sucLabel=row.sucursal==="PC Refugio"
+      ?`<span class="pill-ref" title="Clic para cambiar sucursal" style="cursor:pointer" onclick="ufSucursal(${i})">Refugio</span>`
+      :row.sucursal==="PC Álamos"
+      ?`<span class="pill-ala" title="Clic para cambiar sucursal" style="cursor:pointer" onclick="ufSucursal(${i})">Álamos</span>`
+      :`<span class="pill-sin" title="Clic para asignar sucursal" style="cursor:pointer" onclick="ufSucursal(${i})">—</span>`;
 
     let deudaCell=d&&d.total>0?`<div class="deuda-info">
       <div class="deuda-concepto">${d.concepto||"Deuda"}</div>
@@ -787,6 +1010,16 @@ function renderT(){
 }
 
 function ufNombre(i,v){rows[i].nombre=v;sv("pc4_rows",rows);renderT();}
+function ufSucursal(i){
+  const ciclo={"PC Refugio":"PC Álamos","PC Álamos":"","":"PC Refugio"};
+  rows[i].sucursal=ciclo[rows[i].sucursal]??"PC Refugio";
+  if(rows[i].nombre&&rows[i].sucursal){
+    if(!perfiles[rows[i].nombre])perfiles[rows[i].nombre]={sucursal:rows[i].sucursal,pct:rows[i].pct};
+    else perfiles[rows[i].nombre].sucursal=rows[i].sucursal;
+    sv("pc4_perfiles",perfiles);
+  }
+  sv("pc4_rows",rows);renderT();
+}
 function uf(i,f,v){
   rows[i][f]=v;
   sv("pc4_rows",rows);
@@ -1034,7 +1267,7 @@ function tarjetaDeuda(nombre,d,saldada){
 async function recargarS19(){
   if(!confirm("¿Recargar los datos del reporte S19/2026?\nEsto reemplaza los datos actuales en pantalla con los del reporte de Benji.\n(Las deudas y el historial no se borran)"))return;
   rows = S19.map(r=>({...r}));
-  await Promise.all([sv("pc4_rows", rows), sv("pc4_semana","19/2026")]);
+  await Promise.all([sv("pc4_rows", rows), sv("pc4_semana","20/2026")]);
   document.getElementById("sem").value="19/2026";
   renderT(); renderD(); renderSucursales();
   flash("✅ Datos S19/2026 cargados — 21 lavadores");
@@ -1093,14 +1326,13 @@ function importarDatos(input){
 }
 
 async function resetearSemana(){
-  if(!confirm("¿Cargar datos frescos de S19/2026?\n\nLas deudas e historial se conservan."))return;
-  flash("⏳ Limpiando semana...");
-  await Promise.all([
-    sv("pc4_rows", S19.map(r=>({...r}))),
-    sv("pc4_semana", "19/2026"),
-    sv("pc4_perfiles", PERFILES_DEFAULT)
-  ]);
-  location.reload();
+  const sem = document.getElementById("sem").value;
+  if(!confirm("¿Limpiar semana "+sem+" para empezar nueva?\n\nSe borran autos y comisiones. Las deudas e historial se conservan."))return;
+  // Conservar nombres y sucursales pero limpiar datos de la semana
+  rows = rows.map(r=>({nombre:r.nombre,sucursal:r.sucursal,pct:r.pct,autos:"",comision:"",food:"",merch:"",bono:"",ahorro:"",diasEntrena:0,pagoDia:0}));
+  await sv("pc4_rows", rows);
+  renderT(); renderD();
+  flash("✓ Semana limpiada — sube el nuevo reporte PDF");
 }
 function ajustarPagosHechos(nombre,hechos){
   if(!deudas[nombre])return;
@@ -2525,9 +2757,7 @@ init().then(()=>{
   initPerf();
   initLiquidaciones();
 });
-// Rellenar campo de API key si está guardada (esto sí puede quedar en localStorage)
-const _k=localStorage.getItem("pc4_gkey");
-if(_k)document.getElementById("gkey-input").value=_k;
+
 </script>
 </body>
 </html>
