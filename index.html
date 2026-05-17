@@ -148,7 +148,9 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
     <label style="color:#aaa;font-size:11px">Semana</label>
     <input type="text" id="sem" value="19/2026">
-    <span style="color:#555;font-size:10px;font-weight:700">🤖 Claude AI</span>
+    <input type="password" id="gkey-input" placeholder="API Key Gemini"
+      style="background:#222;color:#f8ba00;border:1px solid #444;border-radius:4px;padding:3px 8px;font-size:11px;width:140px;font-family:monospace"
+      onchange="localStorage.setItem('pc4_gkey',this.value);flash('✓ API Key guardada')">
   </div>
 </div>
 <div class="tabs">
@@ -171,7 +173,7 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
       <h2 id="ptit">Semana 19/2026 — datos cargados ✓</h2>
       <div class="bg">
         <button class="btn by" onclick="document.getElementById('fi').click()">📸 Subir reporte</button>
-        <button class="btn bo" onclick="if(window._lastPDFText){const w=window.open();w.document.write('<pre style=font-size:11px>'+window._lastPDFText.replace(/</g,'&lt;')+'</pre>');}else{alert('Sube un PDF primero');}" style="font-size:11px">🔍 Ver texto PDF</button>
+        <button class="btn" onclick="cargarS20()" style="background:#f8ba00;color:#000;font-size:11px">⚡ Cargar S20</button>
         <button class="btn" onclick="resetearSemana()" style="background:#1c3a61;color:#fff;font-size:11px">🔄 Nueva semana</button>
         <button class="btn" onclick="exportarDatos()" style="background:#276749;color:#fff;font-size:11px">📤 Exportar</button>
         <button class="btn" onclick="document.getElementById('fi-import').click()" style="background:#276749;color:#fff;font-size:11px">📥 Importar</button>
@@ -391,10 +393,10 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
         <thead>
           <tr style="background:#000;color:#f8ba00;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">
             <th style="padding:10px 10px;text-align:left;min-width:120px">Día</th>
-            <th style="padding:10px 8px;text-align:right;min-width:90px;color:#f8ba00">PC Refugio</th>
+            <th style="padding:10px 8px;text-align:right;min-width:90px">PC Refugio</th>
             <th style="padding:10px 8px;text-align:center;width:60px">✓</th>
             <th style="padding:10px 8px;text-align:left;min-width:90px">Staff Ref.</th>
-            <th style="padding:10px 8px;text-align:right;min-width:90px;color:#14aace">PC Álamos</th>
+            <th style="padding:10px 8px;text-align:right;min-width:90px">PC Álamos</th>
             <th style="padding:10px 8px;text-align:center;width:60px">✓</th>
             <th style="padding:10px 8px;text-align:left;min-width:90px">Staff Ál.</th>
             <th style="padding:10px 6px;width:32px"></th>
@@ -404,9 +406,9 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
         <tfoot>
           <tr style="background:#f8f8f8;font-weight:900;font-size:13px;border-top:2px solid #000">
             <td style="padding:10px">Subtotal</td>
-            <td style="padding:10px;text-align:right;color:#f8ba00;background:#222" id="fl-tot-ref">$0</td>
+            <td style="padding:10px;text-align:right;color:#1c3a61" id="fl-tot-ref">$0</td>
             <td colspan="2"></td>
-            <td style="padding:10px;text-align:right;color:#14aace" id="fl-tot-ala">$0</td>
+            <td style="padding:10px;text-align:right;color:#1c3a61" id="fl-tot-ala">$0</td>
             <td colspan="3"></td>
           </tr>
           <tr style="background:#f8ba00;font-weight:900;font-size:14px">
@@ -456,29 +458,6 @@ const S19 = [
   {nombre:"Javier",     sucursal:"PC Refugio",pct:30, autos:27, comision:2861, food:615, merch:25, bono:0,   ahorro:0},
   {nombre:"OMAR",       sucursal:"PC Refugio",pct:40, autos:9,  comision:592,  food:0,   merch:0,  bono:0,   ahorro:0},
   {nombre:"Uli",        sucursal:"PC Refugio",pct:35, autos:62, comision:3675, food:734, merch:25, bono:0,   ahorro:0},
-];
-
-const S20 = [
-  // PC ÁLAMOS
-  {nombre:"Danilo",     sucursal:"PC Álamos", pct:40, autos:23, comision:1448, food:0,   merch:0,  bono:0,   ahorro:0},
-  {nombre:"Jose Jr",    sucursal:"PC Álamos", pct:45, autos:51, comision:3332, food:200, merch:100,bono:0,   ahorro:0},
-  {nombre:"Juan Lopez", sucursal:"PC Álamos", pct:40, autos:63, comision:3441, food:48,  merch:0,  bono:0,   ahorro:0},
-  {nombre:"Juaquin",    sucursal:"PC Álamos", pct:30, autos:27, comision:1383, food:0,   merch:0,  bono:0,   ahorro:0},
-  {nombre:"Marvin",     sucursal:"PC Álamos", pct:45, autos:63, comision:4617, food:0,   merch:0,  bono:50,  ahorro:0},
-  {nombre:"Randy",      sucursal:"PC Álamos", pct:35, autos:58, comision:3224, food:0,   merch:22, bono:0,   ahorro:0},
-  {nombre:"Toño",       sucursal:"PC Álamos", pct:45, autos:68, comision:5234, food:48,  merch:0,  bono:0,   ahorro:0},
-  {nombre:"Valente",    sucursal:"PC Álamos", pct:40, autos:55, comision:3628, food:200, merch:200,bono:200, ahorro:0},
-  // PC REFUGIO
-  {nombre:"Antonio",    sucursal:"PC Refugio",pct:40, autos:53, comision:3466, food:200, merch:0,  bono:0,   ahorro:0},
-  {nombre:"Cesar",      sucursal:"PC Refugio",pct:35, autos:56, comision:3039, food:0,   merch:0,  bono:0,   ahorro:0},
-  {nombre:"Charlie",    sucursal:"PC Refugio",pct:40, autos:59, comision:3697, food:24,  merch:300,bono:0,   ahorro:0},
-  {nombre:"Cheque",     sucursal:"PC Refugio",pct:30, autos:30, comision:1589, food:24,  merch:0,  bono:0,   ahorro:0},
-  {nombre:"Danilo",     sucursal:"PC Refugio",pct:40, autos:24, comision:1818, food:48,  merch:336,bono:0,   ahorro:0},
-  {nombre:"El güero",   sucursal:"PC Refugio",pct:40, autos:59, comision:3752, food:0,   merch:0,  bono:0,   ahorro:0},
-  {nombre:"Emma",       sucursal:"PC Refugio",pct:40, autos:61, comision:4208, food:24,  merch:100,bono:0,   ahorro:0},
-  {nombre:"Gaell",      sucursal:"PC Refugio",pct:40, autos:55, comision:3031, food:0,   merch:152,bono:0,   ahorro:0},
-  {nombre:"Javier",     sucursal:"PC Refugio",pct:35, autos:24, comision:2286, food:0,   merch:596,bono:0,   ahorro:0},
-  {nombre:"Uli",        sucursal:"PC Refugio",pct:30, autos:46, comision:2352, food:48,  merch:594,bono:0,   ahorro:0},
 ];
 
 // Perfiles permanentes (sucursal+% que se recuerdan entre semanas)
@@ -661,295 +640,95 @@ function setF(f){filtro=f;document.querySelectorAll(".fbtn[data-f]").forEach(b=>
 function setFS(f){filtroS=f;["all","ref","ala"].forEach(k=>document.getElementById("fs-"+k).classList.remove("on"));({all:"fs-all","PC Refugio":"fs-ref","PC Álamos":"fs-ala"})[f]&&document.getElementById(({all:"fs-all","PC Refugio":"fs-ref","PC Álamos":"fs-ala"})[f]).classList.add("on");renderS()}
 
 // ── OCR ───────────────────────────────────────────────────────────────────────
-
-
 function onFile(inp){
   const file=inp.files&&inp.files[0];if(!file)return;
-  if(file.type==="application/pdf"){
-    const r=new FileReader();
-    r.onload=e=>{parsePDF(e.target.result)};
-    r.readAsArrayBuffer(file);
-  } else {
-    setSt("err","❌ Solo se aceptan archivos PDF. Pide a Benji que exporte como PDF desde su Excel.");
-  }
-  inp.value="";
+  const r=new FileReader();
+  r.onload=e=>{
+    const b64=e.target.result.split(",")[1];
+    const mime=file.type||"image/png";
+    runOCR(b64,mime);
+  };
+  r.readAsDataURL(file);inp.value="";
 }
 
-// ── PARSER PDF (sin IA, sin API) ──────────────────────────────────────────────
-async function parsePDF(arrayBuffer){
-  setSt("load","📄 Leyendo PDF...");
+async function runOCR(b64,mime){
+  setSt("load","🔍 Leyendo reporte con IA...");
+  const prompt=`Analiza este reporte semanal de lavadores de Patio Cinco.
+
+El reporte tiene una columna NOTAS o secciones marcadas como "ALAMOS" y "REFUGIO" que indican a qué sucursal pertenece cada lavador.
+
+Hay 4 tablas separadas:
+1. COMISIONES: columnas NOTAS (sucursal), COLABORADOR, %, $ COMISIÓN, # coches (autos), BONO
+2. FOOD (primera tabla): COLABORADOR, $ FOOD — solo los que consumieron food. Ignora la columna BONO negativa roja de esta tabla (son descuentos ya calculados).
+3. MERCH: COLABORADOR, $ MERCH — solo los que tienen merch
+4. Segunda tabla de FOOD (personal/coordinadores) — IGNORA ESTA, no son lavadores
+
+REGLAS IMPORTANTES:
+- Lee TODOS los lavadores de COMISIONES
+- La columna NOTAS o los encabezados de sección (ALAMOS, REFUGIO) determinan la sucursal:
+  * "ALAMOS" o "ÁLAMOS" → sucursal: "PC Álamos"
+  * "REFUGIO" → sucursal: "PC Refugio"
+- Para food: busca cada nombre en la tabla FOOD de lavadores. Si aparece, usa ese monto (positivo). Si no aparece, food=0
+- Para merch: busca cada nombre en la tabla MERCH. Si aparece, usa ese monto. Si no, merch=0
+- Para bono: usa la columna BONO de COMISIONES si existe (valor positivo verde). Si no hay, bono=0
+- Si un lavador aparece en COMISIONES con múltiples filas (por diferentes %), suma sus comisiones y usa el % más alto
+- NO incluyas filas "Total" ni "Suma total"
+- Los montos son números sin $ ni comas
+
+Devuelve SOLO este JSON, sin markdown ni texto extra:
+{"lavadores":[{"nombre":"","sucursal":"PC Refugio o PC Álamos","pct":40,"autos":0,"comision":0,"food":0,"merch":0,"bono":0}]}`;
+
   try{
-    const pdfjsLib = await loadPdfJs();
-    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-    // Recolectar TODOS los items de todas las páginas con sus coordenadas
-    let allItems = [];
-    for(let i=1; i<=pdf.numPages; i++){
-      const page = await pdf.getPage(i);
-      const vp = page.getViewport({scale:1});
-      const content = await page.getTextContent();
-      for(const item of content.items){
-        allItems.push({
-          str: item.str,
-          x: Math.round(item.transform[4]),
-          y: Math.round(vp.height - item.transform[5]), // invertir Y (PDF 0 está abajo)
-          page: i
-        });
-      }
-    }
-    // Ordenar por página, luego Y, luego X
-    allItems.sort((a,b)=> a.page-b.page || a.y-b.y || a.x-b.x);
-
-    // El PDF tiene 4 secciones horizontales: Comisiones (x<~300), Food (~300-450), Merch (~450-600), Ingresos (>600)
-    // Separar por columna basándose en X
-    // Agrupar en filas por Y (tolerancia 4px)
-    const rowMap = {};
-    for(const item of allItems){
-      if(!item.str.trim()) continue;
-      const yKey = Math.round(item.y/4)*4; // agrupar cada 4px
-      const pageKey = item.page;
-      const key = `${pageKey}_${yKey}`;
-      if(!rowMap[key]) rowMap[key] = [];
-      rowMap[key].push(item);
-    }
-
-    // Construir texto separado por columnas
-    // Columna COMISIONES: x < 420 (aprox mitad izquierda)
-    // El resto va a tablas Food/Merch
-    const comisionLines = [];
-    const otherLines = [];
-    const sortedKeys = Object.keys(rowMap).sort((a,b)=>{
-      const [pa,ya] = a.split("_").map(Number);
-      const [pb,yb] = b.split("_").map(Number);
-      return pa-pb || ya-yb;
+  const GKEY=localStorage.getItem("pc4_gkey")||"GEMINI_KEY_PLACEHOLDER";
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GKEY}`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[
+        {inline_data:{mime_type:mime,data:b64}},
+        {text:prompt}
+      ]}],generationConfig:{temperature:0,maxOutputTokens:2000}})
     });
-    for(const key of sortedKeys){
-      const items = rowMap[key].sort((a,b)=>a.x-b.x);
-      // Separar items de columna izquierda (comisiones) vs derecha (food/merch)
-      const leftItems = items.filter(it=>it.x < 420);
-      const rightItems = items.filter(it=>it.x >= 420);
-      if(leftItems.length) comisionLines.push(leftItems.map(it=>it.str).join(" "));
-      if(rightItems.length) otherLines.push(rightItems.map(it=>it.str).join(" "));
-    }
+    const raw=await res.text();
+    if(!res.ok){setSt("err","❌ Error API: "+raw.slice(0,200));return}
+    const data=JSON.parse(raw);
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    const parsed=JSON.parse(text.replace(/```json\n?|\n?```/g,"").trim());
+    if(!parsed.lavadores){setSt("err","❌ No se pudo leer la estructura");return}
 
-    const fullText = [...comisionLines, "---OTRAS---", ...otherLines].join("\n");
-    // Debug: guardar texto para inspección
-    window._lastPDFText = fullText;
-    parseReporteText(fullText);
-  }catch(e){
-    setSt("err","❌ Error leyendo PDF: "+e.message);
-    console.error(e);
-  }
-}
-
-function loadPdfJs(){
-  return new Promise((resolve,reject)=>{
-    if(window.pdfjsLib){resolve(window.pdfjsLib);return;}
-    const s=document.createElement("script");
-    s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-    s.onload=()=>{
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      resolve(window.pdfjsLib);
-    };
-    s.onerror=()=>reject(new Error("No se pudo cargar PDF.js"));
-    document.head.appendChild(s);
-  });
-}
-
-function parseReporteText(text){
-  // El texto de PDF.js sale con tokens separados por espacios, una línea por "y"
-  // Estrategia: buscar patrones clave directamente en el texto completo
-  const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
-  // También trabajar con el texto completo para buscar patrones
-  const fullText = lines.join(" ");
-
-  // ── HELPER: encontrar todos los números después de un nombre ─────────────────
-  // En el PDF de Benji, las líneas "Total Nombre" siempre tienen la info que necesitamos
-  // Formato: "Total [Nombre] $X,XXX.XX [autos] [$bono]" o disperso en varias líneas
-
-  // ── 1. Extraer sección COMISIONES ────────────────────────────────────────────
-  // Buscar todas las líneas "Total [Nombre]" que tienen comisión y autos
-  const lavadores = {};
-  let sucursal = "";
-  let currentKey = null;
-
-  for(let i=0; i<lines.length; i++){
-    const line = lines[i];
-
-    // Detectar sucursal — puede venir solo o mezclado
-    if(/\bALAMOS\b|\bÁLAMOS\b/i.test(line) && !/comision|food|merch|ingresos/i.test(line)){
-      sucursal = "PC Álamos";
-    }
-    if(/\bREFUGIO\b/i.test(line) && !/comision|food|merch|ingresos/i.test(line)){
-      sucursal = "PC Refugio";
-    }
-
-    // Detectar línea "Total Nombre" — formato principal del reporte de Benji
-    // Ejemplos: "Total Danilo $1,448.00 23 $1,448"
-    //           "Total Juan Lopez $3,441.00 63 $3,441"
-    //           "Total Randy $3,223.50 58 Randy 21.6 -$22 $3,224"
-    const totalM = line.match(/^Total\s+([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*)\s+\$?([\d,]+\.?\d*)\s+(\d+)/i);
-    if(totalM){
-      const nombre = totalM[1].trim();
-      // Ignorar "Total Danilo" si es el mismo como subtotal — verificar que tenga autos razonables
-      const comision = parseFloat(totalM[2].replace(/,/g,""));
-      const autos = parseInt(totalM[3]);
-      if(comision < 100 || autos < 1) continue; // ignorar subtotales falsos
-
-      // Bono: buscar en la misma línea un número verde (el último $X antes del fin)
-      // En el PDF texto sale como "... $50 Marvin $4,617" — el bono está en col BONO
-      // Buscamos en las próximas líneas o en líneas anteriores el bono para este lavador
-      let bono = 0;
-      // Buscar el bono en la línea de detalle previa (línea con "%")
-      for(let j=Math.max(0,i-5); j<i; j++){
-        const prev = lines[j];
-        if(normN(prev).includes(normN(nombre)) || (currentKey && normN(prev).includes(currentKey))){
-          const bonoM = prev.match(/\$?(\d+)\s*$/);
-          if(bonoM){
-            const b = parseFloat(bonoM[1]);
-            if(b>0 && b<comision) bono = b;
-          }
-        }
-      }
-
-      const key = normN(nombre);
-      currentKey = key;
-      if(!lavadores[key]){
-        lavadores[key] = {nombre, sucursal, pct:40, autos, comision, bono};
-      } else {
-        lavadores[key].autos = autos;
-        lavadores[key].comision = comision;
-        if(bono) lavadores[key].bono = bono;
-        if(sucursal) lavadores[key].sucursal = sucursal;
-      }
-      continue;
-    }
-
-    // Detectar línea de porcentaje para capturar pct y bono
-    // "Nombre 40% $1,234.00 23" o "40% $1,234.00 23"
-    const pctM = line.match(/^([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*?)\s+(\d+)%\s+\$?[\d,]+/);
-    if(pctM){
-      const nombre = pctM[1].trim();
-      const pct = parseInt(pctM[2]);
-      if(nombre && nombre.length>1){
-        const key = normN(nombre);
-        currentKey = key;
-        if(!lavadores[key]) lavadores[key]={nombre,sucursal,pct,autos:0,comision:0,bono:0};
-        else if(pct > lavadores[key].pct) lavadores[key].pct = pct;
-        if(sucursal && !lavadores[key].sucursal) lavadores[key].sucursal = sucursal;
-      } else if(currentKey && lavadores[currentKey]){
-        // línea de continuación sin nombre (segundo %)
-        if(pct > lavadores[currentKey].pct) lavadores[currentKey].pct = pct;
-      }
-      // Detectar bono inline: "Nombre 45% $X 63 $50" — último token después de autos
-      const bonoInlineM = line.match(/\d+%[^$]+\$(\d+[,.]?\d*)\s+\$?(\d+)\s*$/);
-      if(bonoInlineM && currentKey && lavadores[currentKey]){
-        const posibleBono = parseFloat(bonoInlineM[2]?.replace(/,/g,""));
-        if(posibleBono > 0 && posibleBono < 1000) lavadores[currentKey].bono = posibleBono;
-      }
-      continue;
-    }
-
-    // Línea solo de porcentaje (continuación): "40% $564.00 9"
-    const pctOnlyM = line.match(/^(\d+)%\s+\$?[\d,]+/);
-    if(pctOnlyM && currentKey && lavadores[currentKey]){
-      const pct = parseInt(pctOnlyM[1]);
-      if(pct > lavadores[currentKey].pct) lavadores[currentKey].pct = pct;
-    }
-  }
-
-  // ── 2. Extraer FOOD (primera tabla, lavadores) ────────────────────────────────
-  // Buscar sección FOOD: empieza con "FOOD (SEMANA XX/XXXX)" y termina con "Suma total"
-  // Ignorar la segunda tabla FOOD que es de coordinadores
-  const foodMap = {};
-  const coordNames = new Set(["benji","montse","dani","styben","yaz"]);
-  let foodIdx = -1;
-  let foodCount = 0;
-  for(let i=0; i<lines.length; i++){
-    if(/FOOD.*SEMANA.*\d{4}/i.test(lines[i])){
-      foodCount++;
-      if(foodCount === 1){ foodIdx = i; break; } // solo primera
-    }
-  }
-  if(foodIdx >= 0){
-    for(let i=foodIdx+1; i<lines.length; i++){
-      const line = lines[i];
-      if(/suma total|FOOD.*SEMANA|MERCH.*SEMANA|INGRESOS/i.test(line)) break;
-      // "Antonio $200.00" o "Jose Jr $200.00" o "Juan Lopez $48.00"
-      const m = line.match(/^([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*)\s+\$?([\d,]+\.?\d*)$/);
-      if(m){
-        const nombre = m[1].trim();
-        const monto = parseFloat(m[2].replace(/,/g,""));
-        if(/colaborador|bono|total|food/i.test(nombre)) continue;
-        if(coordNames.has(nombre.toLowerCase())) continue;
-        if(monto > 0) foodMap[normN(nombre)] = monto;
-      }
-    }
-  }
-
-  // ── 3. Extraer MERCH ─────────────────────────────────────────────────────────
-  // Formato: "Charlie 300 -300 $3,697" — el primer número es el monto de merch
-  const merchMap = {};
-  let merchIdx = -1;
-  for(let i=0; i<lines.length; i++){
-    if(/MERCH.*SEMANA.*\d{4}/i.test(lines[i])){ merchIdx = i; break; }
-  }
-  if(merchIdx >= 0){
-    for(let i=merchIdx+1; i<lines.length; i++){
-      const line = lines[i];
-      if(/suma total|INGRESOS|FOOD.*SEMANA.*19|FOOD.*SEMANA.*18/i.test(line)) break;
-      // "Charlie 300 -300 $3,697"
-      const m = line.match(/^([A-Za-zÁáÉéÍíÓóÚúÑñ][A-Za-zÁáÉéÍíÓóÚúÑñ\s]*)\s+([\d.]+)\s+-/);
-      if(m){
-        const nombre = m[1].trim();
-        const monto = parseFloat(m[2]);
-        if(/colaborador|merch|total/i.test(nombre)) continue;
-        if(monto > 0) merchMap[normN(nombre)] = monto;
-      }
-    }
-  }
-
-  // ── 4. Cruzar y construir resultado ──────────────────────────────────────────
-  const result = Object.values(lavadores)
-    .filter(l => l.comision > 0)
-    .map(l => {
-      const key = normN(l.nombre);
-      const perfKey = Object.keys(perfiles).find(k => normN(k) === key);
-      return {
-        nombre:   l.nombre,
-        sucursal: l.sucursal || perfiles[perfKey]?.sucursal || "",
-        pct:      l.pct || perfiles[perfKey]?.pct || 40,
-        autos:    l.autos || "",
-        comision: l.comision || "",
-        food:     foodMap[key] || "",
-        merch:    merchMap[key] || "",
-        bono:     l.bono || ""
+    rows=parsed.lavadores.map(l=>{
+      const nNorm=normN(l.nombre);
+      // buscar perfil guardado por nombre normalizado
+      const pk=Object.keys(perfiles).find(k=>normN(k)===nNorm);
+      const perf=pk?perfiles[pk]:null;
+      return{
+        nombre:  l.nombre||"",
+        sucursal:l.sucursal||perf?.sucursal||"",  // prioriza lo que leyó la IA
+        pct:     l.pct||perf?.pct||40,
+        autos:   l.autos||"",
+        comision:l.comision||"",
+        food:    l.food||"",
+        merch:   l.merch||"",
+        bono:    l.bono||""
       };
     });
 
-  if(!result.length){
-    setSt("err","❌ No se encontraron lavadores. Verifica que sea el PDF correcto de Benji.");
-    return;
-  }
+    // actualizar perfiles con sucursal recién leída
+    rows.forEach(r=>{
+      if(r.nombre&&r.sucursal){
+        if(!perfiles[r.nombre])perfiles[r.nombre]={sucursal:r.sucursal,pct:r.pct};
+        else{perfiles[r.nombre].sucursal=r.sucursal;perfiles[r.nombre].pct=r.pct;}
+      }
+    });
+    sv("pc4_perfiles",perfiles);
+    sv("pc4_rows",rows);
+    renderT();renderD();renderSucursales();
 
-  // Actualizar perfiles
-  result.forEach(r=>{
-    if(r.nombre && r.sucursal){
-      if(!perfiles[r.nombre]) perfiles[r.nombre] = {sucursal:r.sucursal, pct:r.pct};
-      else { perfiles[r.nombre].sucursal = r.sucursal; perfiles[r.nombre].pct = r.pct; }
-    }
-  });
-
-  rows = result;
-  sv("pc4_perfiles", perfiles);
-  sv("pc4_rows", rows);
-  renderT(); renderD(); renderSucursales();
-
-  const sinSuc = rows.filter(r=>!r.sucursal).length;
-  setSt("ok", sinSuc > 0
-    ? `✓ ${rows.length} lavadores cargados — ${sinSuc} sin sucursal asignada (clic en "—" para asignar)`
-    : `✓ ${rows.length} lavadores cargados correctamente`);
+    const sinSuc=rows.filter(r=>!r.sucursal).length;
+    setSt("ok",sinSuc>0
+      ?`✓ ${rows.length} lavadores cargados — ${sinSuc} sin sucursal detectada (revisa 🏢 Sucursales)`
+      :`✓ ${rows.length} lavadores cargados con sucursal asignada automáticamente`);
+  }catch(e){setSt("err","❌ "+e.message)}
 }
-
 
 // ── TABLA ─────────────────────────────────────────────────────────────────────
 function renderT(){
@@ -964,10 +743,10 @@ function renderT(){
     const tr=document.createElement("tr");if(!show)tr.classList.add("hidden");
 
     const sucLabel=row.sucursal==="PC Refugio"
-      ?`<span class="pill-ref" title="Clic para cambiar sucursal" style="cursor:pointer" onclick="ufSucursal(${i})">Refugio</span>`
+      ?`<span class="pill-ref" style="cursor:pointer" title="Clic para cambiar" onclick="ufSucursal(${i})">Refugio</span>`
       :row.sucursal==="PC Álamos"
-      ?`<span class="pill-ala" title="Clic para cambiar sucursal" style="cursor:pointer" onclick="ufSucursal(${i})">Álamos</span>`
-      :`<span class="pill-sin" title="Clic para asignar sucursal" style="cursor:pointer" onclick="ufSucursal(${i})">—</span>`;
+      ?`<span class="pill-ala" style="cursor:pointer" title="Clic para cambiar" onclick="ufSucursal(${i})">Álamos</span>`
+      :`<span class="pill-sin" style="cursor:pointer" title="Clic para asignar" onclick="ufSucursal(${i})">—</span>`;
 
     let deudaCell=d&&d.total>0?`<div class="deuda-info">
       <div class="deuda-concepto">${d.concepto||"Deuda"}</div>
@@ -1326,13 +1105,45 @@ function importarDatos(input){
 }
 
 async function resetearSemana(){
-  const sem = document.getElementById("sem").value;
-  if(!confirm("¿Limpiar semana "+sem+" para empezar nueva?\n\nSe borran autos y comisiones. Las deudas e historial se conservan."))return;
-  // Conservar nombres y sucursales pero limpiar datos de la semana
-  rows = rows.map(r=>({nombre:r.nombre,sucursal:r.sucursal,pct:r.pct,autos:"",comision:"",food:"",merch:"",bono:"",ahorro:"",diasEntrena:0,pagoDia:0}));
-  await sv("pc4_rows", rows);
-  renderT(); renderD();
+  const sem=document.getElementById("sem").value;
+  if(!confirm("¿Limpiar semana "+sem+"?\n\nSe borran autos y comisiones. Deudas e historial se conservan."))return;
+  rows=rows.map(r=>({nombre:r.nombre,sucursal:r.sucursal,pct:r.pct,autos:"",comision:"",food:"",merch:"",bono:"",ahorro:"",diasEntrena:0,pagoDia:0}));
+  _cache["pc4_rows"]=rows;
+  try{localStorage.setItem("pc4_rows",JSON.stringify(rows));}catch(e){}
+  sv("pc4_rows",rows);
+  renderT();renderD();
   flash("✓ Semana limpiada — sube el nuevo reporte PDF");
+}
+
+function cargarS20(){
+  if(!confirm("¿Cargar S20/2026?\n\nEsto reemplaza los datos actuales."))return;
+  const s20=[
+    {nombre:"Danilo",     sucursal:"PC Álamos", pct:40, autos:23, comision:1448,   food:"",  merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Jose Jr",    sucursal:"PC Álamos", pct:40, autos:51, comision:3332,   food:200, merch:100, bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Juan Lopez", sucursal:"PC Álamos", pct:40, autos:63, comision:3441,   food:48,  merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Juaquin",    sucursal:"PC Álamos", pct:30, autos:27, comision:1383,   food:"",  merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Marvin",     sucursal:"PC Álamos", pct:45, autos:63, comision:4617,   food:"",  merch:"",  bono:50,  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Randy",      sucursal:"PC Álamos", pct:35, autos:58, comision:3223.5, food:"",  merch:22,  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Toño",       sucursal:"PC Álamos", pct:45, autos:68, comision:5233.5, food:48,  merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Valente",    sucursal:"PC Álamos", pct:40, autos:55, comision:3628,   food:"",  merch:"",  bono:200, ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Antonio",    sucursal:"PC Refugio",pct:40, autos:53, comision:3466,   food:200, merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Cesar",      sucursal:"PC Refugio",pct:35, autos:56, comision:3039,   food:"",  merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Charlie",    sucursal:"PC Refugio",pct:40, autos:59, comision:3696.5, food:24,  merch:300, bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Cheque",     sucursal:"PC Refugio",pct:30, autos:30, comision:1589,   food:24,  merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Danilo",     sucursal:"PC Refugio",pct:40, autos:24, comision:1818,   food:48,  merch:336, bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"El güero",   sucursal:"PC Refugio",pct:40, autos:59, comision:3751.8, food:"",  merch:"",  bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Emma",       sucursal:"PC Refugio",pct:40, autos:61, comision:4208,   food:24,  merch:100, bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Gaell",      sucursal:"PC Refugio",pct:40, autos:55, comision:3031,   food:"",  merch:152, bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Javier",     sucursal:"PC Refugio",pct:35, autos:24, comision:2286,   food:"",  merch:596, bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+    {nombre:"Uli",        sucursal:"PC Refugio",pct:30, autos:46, comision:2352,   food:48,  merch:594, bono:"",  ahorro:"",diasEntrena:0,pagoDia:0},
+  ];
+  rows=s20;
+  _cache["pc4_rows"]=rows;_cache["pc4_semana"]="20/2026";
+  try{localStorage.setItem("pc4_rows",JSON.stringify(rows));localStorage.setItem("pc4_semana","20/2026");}catch(e){}
+  document.getElementById("sem").value="20/2026";
+  sv("pc4_rows",rows);sv("pc4_semana","20/2026");
+  renderT();renderD();renderSucursales();
+  flash("✓ S20/2026 — 18 lavadores");
 }
 function ajustarPagosHechos(nombre,hechos){
   if(!deudas[nombre])return;
@@ -1736,18 +1547,6 @@ function cerrarSemana(){
     rows:rows.map(r=>{const desc=getDesc(r.nombre);const d=deudas[r.nombre];return{...r,total:calcT(r,r.nombre),deudaDesc:desc,deudaCon:d?.concepto||"",pagoPago:d?.pagoActual||1,pagoTot:d?.numPagos||1}})});
   historial=arr.slice(0,10);
   rows=rows.map(r=>({nombre:r.nombre,sucursal:r.sucursal,pct:r.pct,autos:"",comision:"",food:"",merch:"",bono:""}));
-  // Guardar flujo de la semana en historial y limpiar días
-  const totRef=flujoDias.reduce((s,d)=>s+montoRef(d)-(d.ref.gasto||0),0);
-  const totAla=flujoDias.reduce((s,d)=>s+montoAla(d)-(d.ala.gasto||0),0);
-  const flujoEntry={semana:sem,fecha:new Date().toLocaleDateString("es-MX"),dias:[...flujoDias],totRef,totAla,total:totRef+totAla};
-  // Evitar duplicado si ya existe esa semana en el historial
-  flujoHist=flujoHist.filter(h=>h.semana!==sem);
-  flujoHist=[flujoEntry,...flujoHist].slice(0,30);
-  flujoDias=[];
-  sv("pc4_flujo",flujoHist);
-  sv("pc4_flujo_dias",flujoDias);
-  renderFlujoTabla();
-  renderFlujoHist();
   sv("pc4_deudas",deudas);sv("pc4_hist",historial);sv("pc4_rows",rows);
   renderT();renderD();flash("✓ Semana "+sem+" cerrada");
 }
@@ -2051,15 +1850,6 @@ let flujoDias=[]; // [{dia, ref:{monto,gasto,gastoNota,staff,recibido}, ala:{mon
 
 function initFlujo(){
   flujoHist = ld("pc4_flujo",[]);
-  // Migrar dias viejos en historial (monto -> cortes[]) y recalcular totales
-  flujoHist = flujoHist.map(h=>{
-    if(h.dias) h.dias = h.dias.map(migrarFlujoDia);
-    h.totRef = (h.dias||[]).reduce((s,d)=>s+sumaCortes(d.ref?.cortes)-(d.ref?.gasto||0),0);
-    h.totAla = (h.dias||[]).reduce((s,d)=>s+sumaCortes(d.ala?.cortes)-(d.ala?.gasto||0),0);
-    h.total  = h.totRef + h.totAla;
-    return h;
-  });
-  sv("pc4_flujo", flujoHist);
   flujoDias = ld("pc4_flujo_dias",[]);
   if(!flujoDias.length) agregarDiaFlujo(true);
   renderFlujoTabla();
@@ -2110,7 +1900,7 @@ function renderFlujoTabla(){
     // HTML de cortes para una sucursal
     const cortesHtml=(suc)=>{
       const cortes=d[suc].cortes||[{val:"",nota:""}];
-      const color=suc==="ref"?"#f8ba00":"#14aace";
+      const color=suc==="ref"?"#1c3a61":"#38a169";
       return cortes.map((c,ci)=>`
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:${ci<cortes.length-1?4:0}px">
           <input type="number" value="${c.val||""}" placeholder="0.00"
@@ -2238,8 +2028,8 @@ function calcFlujoTotales(){
 
 function guardarFlujo(){
   const sem=document.getElementById("sem").value;
-  const totRef=flujoDias.reduce((s,d)=>s+montoRef(d)-(d.ref.gasto||0),0);
-  const totAla=flujoDias.reduce((s,d)=>s+montoAla(d)-(d.ala.gasto||0),0);
+  const totRef=flujoDias.reduce((s,d)=>s+(d.ref.monto||0)-(d.ref.gasto||0),0);
+  const totAla=flujoDias.reduce((s,d)=>s+(d.ala.monto||0)-(d.ala.gasto||0),0);
   const entry={semana:sem,fecha:new Date().toLocaleDateString("es-MX"),dias:[...flujoDias],totRef,totAla,total:totRef+totAla};
   flujoHist=[entry,...flujoHist].slice(0,30);
   sv("pc4_flujo",flujoHist);
@@ -2283,7 +2073,7 @@ function renderFlujoHist(){
                 <div style="font-size:10px;font-weight:700;color:#1c3a61;margin-bottom:4px">PC REFUGIO</div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Monto</label>
-                  <input type="number" value="${sumaCortes(d.ref?.cortes)||0}" onchange="editFlujoHistDia(${idx},${di},'ref.cortes.0.val',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
+                  <input type="number" value="${d.ref?.monto||0}" onchange="editFlujoHistDia(${idx},${di},'ref.monto',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Gasto</label>
@@ -2298,7 +2088,7 @@ function renderFlujoHist(){
                 <div style="font-size:10px;font-weight:700;color:#38a169;margin-bottom:4px">PC ÁLAMOS</div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Monto</label>
-                  <input type="number" value="${sumaCortes(d.ala?.cortes)||0}" onchange="editFlujoHistDia(${idx},${di},'ala.cortes.0.val',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
+                  <input type="number" value="${d.ala?.monto||0}" onchange="editFlujoHistDia(${idx},${di},'ala.monto',+this.value)" style="width:90px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:3px 6px;text-align:right">
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
                   <label style="font-size:10px;width:55px">Gasto</label>
@@ -2333,26 +2123,20 @@ function eliminarFlujoHist(idx){
 function editFlujoHistDia(hIdx,dIdx,campo,val){
   const d=flujoHist[hIdx].dias[dIdx];
   const parts=campo.split(".");
-  if(parts.length===4 && parts[2]==="0" && parts[3]==="val"){
-    // ref.cortes.0.val or ala.cortes.0.val
-    const suc=parts[0];
-    if(!d[suc].cortes||!d[suc].cortes.length)d[suc].cortes=[{val:"",nota:""}];
-    d[suc].cortes[0].val=val;
-  } else if(parts.length===2){
-    if(!d[parts[0]])d[parts[0]]={};d[parts[0]][parts[1]]=val;
-  } else {d[campo]=val;}
+  if(parts.length===2){if(!d[parts[0]])d[parts[0]]={};d[parts[0]][parts[1]]=val;}
+  else{d[campo]=val;}
   // recalc totals
   const h=flujoHist[hIdx];
-  h.totRef=h.dias.reduce((s,x)=>s+sumaCortes(x.ref?.cortes)-(x.ref?.gasto||0),0);
-  h.totAla=h.dias.reduce((s,x)=>s+sumaCortes(x.ala?.cortes)-(x.ala?.gasto||0),0);
+  h.totRef=h.dias.reduce((s,x)=>s+(x.ref?.monto||0)-(x.ref?.gasto||0),0);
+  h.totAla=h.dias.reduce((s,x)=>s+(x.ala?.monto||0)-(x.ala?.gasto||0),0);
   h.total=h.totRef+h.totAla;
 }
 
 function eliminarFlujoHistDia(hIdx,dIdx){
   flujoHist[hIdx].dias.splice(dIdx,1);
   const h=flujoHist[hIdx];
-  h.totRef=h.dias.reduce((s,x)=>s+sumaCortes(x.ref?.cortes)-(x.ref?.gasto||0),0);
-  h.totAla=h.dias.reduce((s,x)=>s+sumaCortes(x.ala?.cortes)-(x.ala?.gasto||0),0);
+  h.totRef=h.dias.reduce((s,x)=>s+(x.ref?.monto||0)-(x.ref?.gasto||0),0);
+  h.totAla=h.dias.reduce((s,x)=>s+(x.ala?.monto||0)-(x.ala?.gasto||0),0);
   h.total=h.totRef+h.totAla;
   sv("pc4_flujo",flujoHist);
   renderFlujoHist();
@@ -2757,7 +2541,9 @@ init().then(()=>{
   initPerf();
   initLiquidaciones();
 });
-
+// Rellenar campo de API key si está guardada (esto sí puede quedar en localStorage)
+const _k=localStorage.getItem("pc4_gkey");
+if(_k)document.getElementById("gkey-input").value=_k;
 </script>
 </body>
 </html>
