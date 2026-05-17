@@ -1806,6 +1806,15 @@ let flujoDias=[]; // [{dia, ref:{monto,gasto,gastoNota,staff,recibido}, ala:{mon
 
 function initFlujo(){
   flujoHist = ld("pc4_flujo",[]);
+  // Migrar dias viejos en historial (monto -> cortes[]) y recalcular totales
+  flujoHist = flujoHist.map(h=>{
+    if(h.dias) h.dias = h.dias.map(migrarFlujoDia);
+    h.totRef = (h.dias||[]).reduce((s,d)=>s+sumaCortes(d.ref?.cortes)-(d.ref?.gasto||0),0);
+    h.totAla = (h.dias||[]).reduce((s,d)=>s+sumaCortes(d.ala?.cortes)-(d.ala?.gasto||0),0);
+    h.total  = h.totRef + h.totAla;
+    return h;
+  });
+  sv("pc4_flujo", flujoHist);
   flujoDias = ld("pc4_flujo_dias",[]);
   if(!flujoDias.length) agregarDiaFlujo(true);
   renderFlujoTabla();
