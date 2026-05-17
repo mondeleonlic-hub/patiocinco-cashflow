@@ -151,6 +151,7 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
     <input type="password" id="gkey-input" placeholder="API Key Gemini"
       style="background:#222;color:#f8ba00;border:1px solid #444;border-radius:4px;padding:3px 8px;font-size:11px;width:140px;font-family:monospace"
       onchange="localStorage.setItem('pc4_gkey',this.value);flash('✓ API Key guardada')">
+    <button onclick="localStorage.removeItem('pc4_gkey');document.getElementById('gkey-input').value='';flash('🗑 Key borrada — pega la nueva')" style="background:#e53e3e;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✕ Reset key</button>
   </div>
 </div>
 <div class="tabs">
