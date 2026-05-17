@@ -174,7 +174,7 @@ select:focus,input:focus{border-color:#f8ba00}select{cursor:pointer}
       <h2 id="ptit">Semana 19/2026 — datos cargados ✓</h2>
       <div class="bg">
         <button class="btn by" onclick="document.getElementById('fi').click()">📸 Subir reporte</button>
-        <button class="btn" onclick="resetearSemana()" style="background:#1c3a61;color:#fff;font-size:11px">🔄 Recargar S19</button>
+        <button class="btn" onclick="resetearSemana()" style="background:#1c3a61;color:#fff;font-size:11px">🔄 Cargar S20</button>
         <button class="btn" onclick="exportarDatos()" style="background:#276749;color:#fff;font-size:11px">📤 Exportar</button>
         <button class="btn" onclick="document.getElementById('fi-import').click()" style="background:#276749;color:#fff;font-size:11px">📥 Importar</button>
         <button class="btn bo" onclick="addRow()">+ Lavador</button>
@@ -460,6 +460,29 @@ const S19 = [
   {nombre:"Uli",        sucursal:"PC Refugio",pct:35, autos:62, comision:3675, food:734, merch:25, bono:0,   ahorro:0},
 ];
 
+const S20 = [
+  // PC ÁLAMOS
+  {nombre:"Danilo",     sucursal:"PC Álamos", pct:40, autos:23, comision:1448, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Jose Jr",    sucursal:"PC Álamos", pct:45, autos:51, comision:3332, food:200, merch:100,bono:0,   ahorro:0},
+  {nombre:"Juan Lopez", sucursal:"PC Álamos", pct:40, autos:63, comision:3441, food:48,  merch:0,  bono:0,   ahorro:0},
+  {nombre:"Juaquin",    sucursal:"PC Álamos", pct:30, autos:27, comision:1383, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Marvin",     sucursal:"PC Álamos", pct:45, autos:63, comision:4617, food:0,   merch:0,  bono:50,  ahorro:0},
+  {nombre:"Randy",      sucursal:"PC Álamos", pct:35, autos:58, comision:3224, food:0,   merch:22, bono:0,   ahorro:0},
+  {nombre:"Toño",       sucursal:"PC Álamos", pct:45, autos:68, comision:5234, food:48,  merch:0,  bono:0,   ahorro:0},
+  {nombre:"Valente",    sucursal:"PC Álamos", pct:40, autos:55, comision:3628, food:200, merch:200,bono:200, ahorro:0},
+  // PC REFUGIO
+  {nombre:"Antonio",    sucursal:"PC Refugio",pct:40, autos:53, comision:3466, food:200, merch:0,  bono:0,   ahorro:0},
+  {nombre:"Cesar",      sucursal:"PC Refugio",pct:35, autos:56, comision:3039, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Charlie",    sucursal:"PC Refugio",pct:40, autos:59, comision:3697, food:24,  merch:300,bono:0,   ahorro:0},
+  {nombre:"Cheque",     sucursal:"PC Refugio",pct:30, autos:30, comision:1589, food:24,  merch:0,  bono:0,   ahorro:0},
+  {nombre:"Danilo",     sucursal:"PC Refugio",pct:40, autos:24, comision:1818, food:48,  merch:336,bono:0,   ahorro:0},
+  {nombre:"El güero",   sucursal:"PC Refugio",pct:40, autos:59, comision:3752, food:0,   merch:0,  bono:0,   ahorro:0},
+  {nombre:"Emma",       sucursal:"PC Refugio",pct:40, autos:61, comision:4208, food:24,  merch:100,bono:0,   ahorro:0},
+  {nombre:"Gaell",      sucursal:"PC Refugio",pct:40, autos:55, comision:3031, food:0,   merch:152,bono:0,   ahorro:0},
+  {nombre:"Javier",     sucursal:"PC Refugio",pct:35, autos:24, comision:2286, food:0,   merch:596,bono:0,   ahorro:0},
+  {nombre:"Uli",        sucursal:"PC Refugio",pct:30, autos:46, comision:2352, food:48,  merch:594,bono:0,   ahorro:0},
+];
+
 // Perfiles permanentes (sucursal+% que se recuerdan entre semanas)
 const PERFILES_DEFAULT = {
   "Antonio":{"sucursal":"PC Refugio","pct":40},
@@ -570,7 +593,7 @@ async function init(){
     gsLoad("pc4_hist",[]).then(v=>{ historial=v; _cache["pc4_hist"]=v; }),
     gsLoad("pc4_perfiles",PERFILES_DEFAULT).then(v=>{ perfiles=v; _cache["pc4_perfiles"]=v; }),
     gsLoad("pc4_rows",null).then(v=>{ _cache["pc4_rows"]=v; }),
-    gsLoad("pc4_semana","19/2026").then(v=>{ _cache["pc4_semana"]=v; }),
+    gsLoad("pc4_semana","20/2026").then(v=>{ _cache["pc4_semana"]=v; }),
     gsLoad("pc4_coords",[{nombre:"Styben",sueldo:1800,comision:0},{nombre:"Javier",sueldo:1237.50,comision:675},{nombre:"Hugo",sueldo:3000,comision:675}]).then(v=>{ coords=v; _cache["pc4_coords"]=v; }),
     gsLoad("pc4_coord_hist",[]).then(v=>{ coordHist=v; _cache["pc4_coord_hist"]=v; }),
     gsLoad("pc4_liquidaciones",[]).then(v=>{ _cache["pc4_liquidaciones"]=v; }),
@@ -581,7 +604,7 @@ async function init(){
 
   Object.entries(PERFILES_DEFAULT).forEach(([n,v])=>{if(!perfiles[n])perfiles[n]=v;});
 
-  const savedSem = _cache["pc4_semana"] || "19/2026";
+  const savedSem = _cache["pc4_semana"] || "20/2026";
   const savedRows = _cache["pc4_rows"];
 
   if(savedSem === "19/2026" && savedRows && savedRows.length > 0 && savedRows[0].comision > 0){
@@ -589,7 +612,7 @@ async function init(){
   } else {
     rows = S19.map(r=>({...r}));
     sv("pc4_rows", rows);
-    sv("pc4_semana","19/2026");
+    sv("pc4_semana","20/2026");
     document.getElementById("sem").value="19/2026";
   }
 
@@ -1034,7 +1057,7 @@ function tarjetaDeuda(nombre,d,saldada){
 async function recargarS19(){
   if(!confirm("¿Recargar los datos del reporte S19/2026?\nEsto reemplaza los datos actuales en pantalla con los del reporte de Benji.\n(Las deudas y el historial no se borran)"))return;
   rows = S19.map(r=>({...r}));
-  await Promise.all([sv("pc4_rows", rows), sv("pc4_semana","19/2026")]);
+  await Promise.all([sv("pc4_rows", rows), sv("pc4_semana","20/2026")]);
   document.getElementById("sem").value="19/2026";
   renderT(); renderD(); renderSucursales();
   flash("✅ Datos S19/2026 cargados — 21 lavadores");
@@ -1093,11 +1116,11 @@ function importarDatos(input){
 }
 
 async function resetearSemana(){
-  if(!confirm("¿Cargar datos frescos de S19/2026?\n\nLas deudas e historial se conservan."))return;
+  if(!confirm("¿Cargar datos frescos de S20/2026?\n\nLas deudas e historial se conservan."))return;
   flash("⏳ Limpiando semana...");
   await Promise.all([
-    sv("pc4_rows", S19.map(r=>({...r}))),
-    sv("pc4_semana", "19/2026"),
+    sv("pc4_rows", S20.map(r=>({...r}))),
+    sv("pc4_semana", "20/2026"),
     sv("pc4_perfiles", PERFILES_DEFAULT)
   ]);
   location.reload();
